@@ -24,7 +24,6 @@ def check_for_n_continous_tickets(tickets_list):
 
 
 driver = webdriver.Firefox(executable_path='/home/ramesh/Downloads/geckodriver')
-driver.implicitly_wait(30)
 driver.maximize_window()
 
 driver.get('https://www.spicinemas.in/chennai/now-showing')
@@ -56,6 +55,9 @@ movie_code = raw_input('enter the movie code')
 movie_name = movies_list_now_showing[int(movie_code)]
 element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, movie_name)))
 element.click()
+
+# add no of ticket selection and movie date selection
+
 
 screen_show_list = []
 WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "movie__show")))
@@ -140,7 +142,7 @@ element_ticket_2.click()
 element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, 'Next')))
 element.click()
 
-
+# add fuel cart payment option to finish booking
 
 
 
