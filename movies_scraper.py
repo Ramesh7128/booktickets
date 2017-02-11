@@ -8,23 +8,26 @@ import time
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 import os
 import json
+from pyvirtualdisplay import Display
+display = Display(visible=1)
+
+display.start()
+prof = webdriver.FirefoxProfile()
 
 # for now check for 2 tickets in a sequence
 def check_for_n_continous_tickets(tickets_list):
-	for i in range(len(tickets_list)):
-		if not i == len(tickets_list):
-			first_number = int(tickets_list[i])
-			next_number = int(tickets_list[i+1])
-			if (next_number == first_number+1):
-				return first_number, next_number
-			else:
-				continue
+	for i in range(len(tickets_list)-1):
+		print i
+		first_number = int(tickets_list[i])
+		next_number = int(tickets_list[i+1])
+		if (next_number == first_number+1):
+			return first_number, next_number
 		else:
-			return False
+			continue
+		
 
-
-driver = webdriver.Firefox(executable_path='/home/ramesh/Downloads/geckodriver')
-driver.maximize_window()
+# driver = webdriver.Firefox(executable_path='/home/ramesh/Downloads/geckodriver')
+driver = webdriver.Firefox(firefox_profile = prof)
 
 driver.get('https://www.spicinemas.in/chennai/now-showing')
 WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, 'selectCity')))
@@ -38,9 +41,9 @@ WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@
 driver.find_element_by_xpath('//*[@id="userPassword"]').send_keys('findout5')
 WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="login_submit"]')))
 driver.find_element_by_xpath('//*[@id="login_submit"]').click()
-
-WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, "//div/dl/dt/a")))
+WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "span.user__name")))
 movies_list_now_showing = []
+WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, "//div/dl/dt/a")))
 movies_list = driver.find_elements_by_xpath('//div/dl/dt/a')
 for i in range(len(movies_list)):
 	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, "//div/dl/dt/a")))
@@ -65,10 +68,15 @@ shows_list = driver.find_elements_by_class_name('movie__show')
 for i in range(len(shows_list)):
 	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "movie__show")))
 	shows_list = driver.find_elements_by_class_name('movie__show')
-	theatre_list = driver.find_element_by_xpath('//div[%s]/div[1]/div/div[1]/span/span[1]' % str(i+2)).text
-	screen_list = driver.find_element_by_xpath('//div[%s]/div[1]/div/div[1]/span/span[2]' % str(i+2)).text
-	print theatre_list, screen_list
-	screen_show_list.append((theatre_list, screen_list))
+	try:
+		driver.find_element_by_xpath('//div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(i+2))
+		theatre_list = driver.find_element_by_xpath('//div[%s]/div[1]/div/div[1]/span/span[1]' % str(i+2)).text
+		screen_list = driver.find_element_by_xpath('//div[%s]/div[1]/div/div[1]/span/span[2]' % str(i+2)).text
+		print theatre_list, screen_list
+		screen_show_list.append((theatre_list, screen_list))
+	except Exception as e:
+		print e
+		continue
 
 for i in range(len(screen_show_list)):
 	print i,": ", screen_show_list[i]
@@ -99,19 +107,20 @@ seats_list = driver.find_elements_by_xpath('//div/ul/li/div[@class="seat availab
 ticket_list_obj = {}
 ticket_list = []
 for seat in seats_list:
-	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//div/ul/li/div[@class="seat available "]')))
-	seats_list = driver.find_elements_by_xpath('//div/ul/li/div[@class="seat available "]')
+	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//div/ul/li/div[@class="available"]')))
+	seats_list = driver.find_elements_by_xpath('//div/ul/li/div[@class="available"]')
 	row_value_object = seat.find_element_by_xpath('..')
 	row_value = row_value_object.get_attribute('data-row-number-id')
 	row_div_id = row_value_object.get_attribute('data-seat-grid-row-id') 
 	seat_no = seat.get_attribute("data-grid-seat-number")
+	seat_no_user = seat.get_attribute("data-seat-number")
 
 	if not row_div_id in ticket_list_obj.keys():
 		ticket_list.append(ticket_list_obj)
 		ticket_list_obj = {}
 		ticket_list_obj[row_div_id] = []
 		ticket_list_obj['row_value_id'] = row_div_id
-	ticket_list_obj[row_div_id].append(seat_no)
+	ticket_list_obj[row_div_id].append(seat_no_user)
 
 	
 
@@ -122,6 +131,7 @@ with open('tickets_list.txt', 'w') as f:
 for i in range(len(ticket_list)):
 	print i, ": ", ticket_list[i] 
 
+print ticket_list
 seat_selection = raw_input('enter the row and tickets code')
 selected_ticket_obj = ticket_list[int(seat_selection)]
 
