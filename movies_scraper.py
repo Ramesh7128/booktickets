@@ -10,21 +10,11 @@ import os
 import json
 from pyvirtualdisplay import Display
 display = Display(visible=1)
+from check import check_for_n_continous_tickets
 
 display.start()
 prof = webdriver.FirefoxProfile()
 
-# for now check for 2 tickets in a sequence
-def check_for_n_continous_tickets(tickets_list):
-	for i in range(len(tickets_list)-1):
-		print i
-		first_number = int(tickets_list[i])
-		next_number = int(tickets_list[i+1])
-		if (next_number == first_number+1):
-			return first_number, next_number
-		else:
-			continue
-		
 
 # driver = webdriver.Firefox(executable_path='/home/ramesh/Downloads/geckodriver')
 driver = webdriver.Firefox(firefox_profile = prof)
@@ -37,8 +27,10 @@ driver.find_element_by_xpath('//*[@id="login-topbar"]/a').click()
 
 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="userEmail"]')))
 driver.find_element_by_xpath('//*[@id="userEmail"]').send_keys('ramesh7128@gmail.com')
+# driver.find_element_by_xpath('//*[@id="userEmail"]').send_keys('venki1989@gmail.com')
 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="userPassword"]')))
 driver.find_element_by_xpath('//*[@id="userPassword"]').send_keys('findout5')
+# driver.find_element_by_xpath('//*[@id="userPassword"]').send_keys('united1')
 WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="login_submit"]')))
 driver.find_element_by_xpath('//*[@id="login_submit"]').click()
 WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "span.user__name")))
@@ -59,7 +51,16 @@ movie_name = movies_list_now_showing[int(movie_code)]
 element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.LINK_TEXT, movie_name)))
 element.click()
 
-# add no of ticket selection and movie date selection
+# ticket selection
+WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "movie__show")))
+ticket_drop_down = driver.find_element_by_xpath('//*[@id="bookTicket"]/section[1]/div/div[1]/div/a')
+ticket_drop_down.click()
+no_of_tikets_selected = str(raw_input('No of tickets'))
+no_tickets_list = driver.find_element_by_xpath('//*[@id="bookTicket"]/section[1]/div/div[1]/div/ul/li[%s]' % no_of_tikets_selected)
+no_tickets_list.click()
+
+# date selection need to be added
+
 
 
 screen_show_list = []
@@ -69,9 +70,10 @@ for i in range(len(shows_list)):
 	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "movie__show")))
 	shows_list = driver.find_elements_by_class_name('movie__show')
 	try:
-		driver.find_element_by_xpath('//div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(i+2))
-		theatre_list = driver.find_element_by_xpath('//div[%s]/div[1]/div/div[1]/span/span[1]' % str(i+2)).text
-		screen_list = driver.find_element_by_xpath('//div[%s]/div[1]/div/div[1]/span/span[2]' % str(i+2)).text
+		WebDriverWait(driver, 15).until(EC.presence_of_element_located((By.XPATH, '//*[@id="bookTicket"]/section[2]/div/div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(i+2)))))
+		driver.find_element_by_xpath('//*[@id="bookTicket"]/section[2]/div/div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(i+2))
+		theatre_list = driver.find_element_by_xpath('//*[@id="bookTicket"]/section[2]/div/div[%s]/div[1]/div/div[1]/span/span[1]' % str(i+2)).text
+		screen_list = driver.find_element_by_xpath('//*[@id="bookTicket"]/section[2]/div/div[%s]/div[1]/div/div[1]/span/span[2]' % str(i+2)).text
 		print theatre_list, screen_list
 		screen_show_list.append((theatre_list, screen_list))
 	except Exception as e:
@@ -83,16 +85,19 @@ for i in range(len(screen_show_list)):
 
 screen_selection = raw_input('enter the screen code')
 WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "movie__show")))
+print "test"
 shows_list = driver.find_elements_by_class_name('movie__show')
-WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))))
-timings_list = driver.find_elements_by_xpath('//div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))
+WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="bookTicket"]/section[2]/div/div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))))
+timings_list = driver.find_elements_by_xpath('//*[@id="bookTicket"]/section[2]/div/div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))
 show_availble_time = [] 
 for i in range(len(timings_list)):
-	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))))
-	timings_list = driver.find_elements_by_xpath('//div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))
+	print i
+	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//*[@id="bookTicket"]/section[2]/div/div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))))
+	timings_list = driver.find_elements_by_xpath('//*[@id="bookTicket"]/section[2]/div/div[%s]/div[2]/div/ul/li[@class="session  indicate-busy show available"]' % str(int(screen_selection)+2))
 	show_availble_time.append(timings_list[i].text)
 
 
+print "show_available_time", show_availble_time
 for i in range(len(show_availble_time)):
 	print i, ": ", show_availble_time[i]
 
@@ -106,9 +111,11 @@ WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '
 seats_list = driver.find_elements_by_xpath('//div/ul/li/div[@class="seat available "]')
 ticket_list_obj = {}
 ticket_list = []
+
+# write a logic to book tickets when displaying itself
 for seat in seats_list:
-	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//div/ul/li/div[@class="available"]')))
-	seats_list = driver.find_elements_by_xpath('//div/ul/li/div[@class="available"]')
+	WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.XPATH, '//div/ul/li/div[@class="seat available "]')))
+	seats_list = driver.find_elements_by_xpath('//div/ul/li/div[@class="seat available "]')
 	row_value_object = seat.find_element_by_xpath('..')
 	row_value = row_value_object.get_attribute('data-row-number-id')
 	row_div_id = row_value_object.get_attribute('data-seat-grid-row-id') 
@@ -117,43 +124,40 @@ for seat in seats_list:
 
 	if not row_div_id in ticket_list_obj.keys():
 		ticket_list.append(ticket_list_obj)
+		index_value = len(ticket_list)-1 
+		print index_value, ":", ticket_list_obj
 		ticket_list_obj = {}
 		ticket_list_obj[row_div_id] = []
 		ticket_list_obj['row_value_id'] = row_div_id
 	ticket_list_obj[row_div_id].append(seat_no_user)
 
-	
 
-print ticket_list
-with open('tickets_list.txt', 'w') as f:
-	f.write(json.dumps(ticket_list))
-
-for i in range(len(ticket_list)):
-	print i, ": ", ticket_list[i] 
-
-print ticket_list
 seat_selection = raw_input('enter the row and tickets code')
 selected_ticket_obj = ticket_list[int(seat_selection)]
 
 div_id = selected_ticket_obj['row_value_id']
-if check_for_n_continous_tickets(selected_ticket_obj[div_id]):
-	ticket_id_1, ticket_id_2 = check_for_n_continous_tickets(selected_ticket_obj[div_id])
-print ticket_id_1, ticket_id_2
-print div_id
-xpath_ticket_1 = '//div/ul/li[%s]/div[%s]' % (str(div_id), str(ticket_id_1))
-xpath_ticket_2 = '//div/ul/li[%s]/div[%s]' % (str(div_id), str(ticket_id_2))
 
-print xpath_ticket_1
-print xpath_ticket_2
-element_ticket_1 = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath_ticket_1)))
-element_ticket_2 = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath_ticket_2)))
-element_ticket_1.click()
-element_ticket_2.click()
-element = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.LINK_TEXT, 'Next')))
+"""
+logic for n tickets
+"""
+if check_for_n_continous_tickets(selected_ticket_obj[div_id], int(no_of_tikets_selected)):
+	tickets_numbers_list = check_for_n_continous_tickets(selected_ticket_obj[div_id], int(no_of_tikets_selected))
+	for ticket in tickets_numbers_list:
+		print ticket
+		xpath_ticket = '//div/ul/li[%s]/div[@data-seat-number="%s"]' % (str(div_id), str(ticket))
+		element_ticket = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, xpath_ticket)))
+		element_ticket.click()
+
+
+WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@class="actions"]')))
+# element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, '//*[@class="actions"]/a')))
+element = WebDriverWait(driver, 20).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/article/div/div/section/div/section[2]/div[2]/div/div[2]/a')))
 element.click()
 
-# add fuel cart payment option to finish booking
+# fuel wallet
+# payment = WebDriverWait(driver, 20).until(EC.presence_of_element_located((By.XPATH, '//*[@id="instant-pay"]')))
+# payment.click()
 
-
-
-
+# card payment
+element = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '/html/body/div[1]/article/div/div/section/div/section[3]/div/div[2]/div[2]/div[2]/a[2]')))
+element.click()
