@@ -1,21 +1,22 @@
+import time
+from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+import os
+import json
+
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 import selenium.webdriver.support.ui as ui
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
-import time
-from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
-import os
-import json
 from pyvirtualdisplay import Display
+
 display = Display(visible=1)
 from check import check_for_n_continous_tickets
 import urlparse
 
 display.start()
 prof = webdriver.FirefoxProfile()
-
 
 # driver = webdriver.Firefox(executable_path='/home/ramesh/Downloads/geckodriver')
 driver = webdriver.Firefox(firefox_profile = prof)
@@ -30,8 +31,8 @@ WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@
 driver.find_element_by_xpath('//*[@id="userEmail"]').send_keys('ramesh7128@gmail.com')
 # driver.find_element_by_xpath('//*[@id="userEmail"]').send_keys('venki1989@gmail.com')
 WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="userPassword"]')))
-driver.find_element_by_xpath('//*[@id="userPassword"]').send_keys('findout5')
-# driver.find_element_by_xpath('//*[@id="userPassword"]').send_keys('united1')
+driver.find_element_by_xpath('//*[@id="userPassword"]').send_keys('')
+# driver.find_element_by_xpath('//*[@id="userPassword"]').send_keys('')
 WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="login_submit"]')))
 driver.find_element_by_xpath('//*[@id="login_submit"]').click()
 WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.CSS_SELECTOR, "span.user__name")))
@@ -69,7 +70,7 @@ date_choice = raw_input("Enter the date: ")
 date_value = str(date_list_available[int(date_choice)])
 url = driver.current_url
 new_url = urlparse.urljoin(url, "%s?seats=2" % date_value) 
-driver.get("%s" % new_url);
+driver.get("%s" % new_url)
 
 # ticket selection
 WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "movie__show")))
@@ -80,9 +81,6 @@ no_of_tickets_selected = str(raw_input('No of tickets :'))
 WebDriverWait(driver, 15).until(EC.visibility_of_element_located((By.XPATH, '//*[@id="bookTicket"]/section[1]/div/div[1]/div/ul/li[%s]' % no_of_tickets_selected)))
 no_tickets_list = driver.find_element_by_xpath('//*[@id="bookTicket"]/section[1]/div/div[1]/div/ul/li[%s]' % no_of_tickets_selected)
 no_tickets_list.click()
-
-
-
 
 screen_show_list = []
 WebDriverWait(driver, 15).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "movie__show")))
